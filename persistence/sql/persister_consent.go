@@ -30,11 +30,18 @@ import (
 
 var _ consent.Manager = &Persister{}
 
-func (p *Persister) RevokeSubjectConsentSession(ctx context.Context, user string) (err error) {
+func (p *Persister) RevokeSubjectConsentSession(ctx context.Context, user string, sid string) (err error) {
 	ctx, span := p.r.Tracer(ctx).Tracer().Start(ctx, "persistence.sql.RevokeSubjectConsentSession")
 	defer otelx.End(span, &err)
 
-	return p.Transaction(ctx, p.revokeConsentSession("consent_challenge_id IS NOT NULL AND subject = ?", user))
+	var fn func(ctx context.Context, c *pop.Connection) error
+	if len(sid) > 0 {
+		fn = p.revokeConsentSession("consent_challenge_id IS NOT NULL AND subject = ? AND login_session_id = ?", user, sid)
+	} else {
+		fn = p.revokeConsentSession("consent_challenge_id IS NOT NULL AND subject = ?", user)
+	}
+
+	return p.Transaction(ctx, fn)
 }
 
 func (p *Persister) RevokeSubjectClientConsentSession(ctx context.Context, user, client string) (err error) {

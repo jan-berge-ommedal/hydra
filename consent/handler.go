@@ -103,7 +103,8 @@ type revokeOAuth2ConsentSessions struct {
 // # Revoke OAuth 2.0 Consent Sessions of a Subject
 //
 // This endpoint revokes a subject's granted consent sessions and invalidates all
-// associated OAuth 2.0 Access Tokens. You may also only revoke sessions for a specific OAuth 2.0 Client ID.
+// associated OAuth 2.0 Access Tokens. You may also only revoke sessions for a specific OAuth 2.0 Client ID
+// or by login_session_id.
 //
 //	Consumes:
 //	- application/json
@@ -119,6 +120,7 @@ type revokeOAuth2ConsentSessions struct {
 func (h *Handler) revokeOAuth2ConsentSessions(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	subject := r.URL.Query().Get("subject")
 	client := r.URL.Query().Get("client")
+	loginSessionId := r.URL.Query().Get("login_session_id")
 	allClients := r.URL.Query().Get("all") == "true"
 	if subject == "" {
 		h.r.Writer().WriteError(w, r, errorsx.WithStack(fosite.ErrInvalidRequest.WithHint(`Query parameter 'subject' is not defined but should have been.`)))
@@ -127,13 +129,14 @@ func (h *Handler) revokeOAuth2ConsentSessions(w http.ResponseWriter, r *http.Req
 
 	switch {
 	case len(client) > 0:
+		// TODO does it make sense to narrow by both client and login_session_id??
 		if err := h.r.ConsentManager().RevokeSubjectClientConsentSession(r.Context(), subject, client); err != nil && !errors.Is(err, x.ErrNotFound) {
 			h.r.Writer().WriteError(w, r, err)
 			return
 		}
 		events.Trace(r.Context(), events.ConsentRevoked, events.WithSubject(subject), events.WithClientID(client))
 	case allClients:
-		if err := h.r.ConsentManager().RevokeSubjectConsentSession(r.Context(), subject); err != nil && !errors.Is(err, x.ErrNotFound) {
+		if err := h.r.ConsentManager().RevokeSubjectConsentSession(r.Context(), subject, loginSessionId); err != nil && !errors.Is(err, x.ErrNotFound) {
 			h.r.Writer().WriteError(w, r, err)
 			return
 		}

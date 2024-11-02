@@ -28,7 +28,7 @@ type (
 		CreateConsentRequest(ctx context.Context, f *flow.Flow, req *flow.OAuth2ConsentRequest) error
 		GetConsentRequest(ctx context.Context, challenge string) (*flow.OAuth2ConsentRequest, error)
 		HandleConsentRequest(ctx context.Context, f *flow.Flow, r *flow.AcceptOAuth2ConsentRequest) (*flow.OAuth2ConsentRequest, error)
-		RevokeSubjectConsentSession(ctx context.Context, user string) error
+		RevokeSubjectConsentSession(ctx context.Context, user string, sid string) error
 		RevokeSubjectClientConsentSession(ctx context.Context, user, client string) error
 
 		VerifyAndInvalidateConsentRequest(ctx context.Context, verifier string) (*flow.AcceptOAuth2ConsentRequest, error)

@@ -725,7 +725,7 @@ func ManagerTests(deps Deps, m consent.Manager, clientManager client.Manager, fo
 					assert.NoError(t, err)
 
 					if tc.client == "" {
-						require.NoError(t, m.RevokeSubjectConsentSession(ctx, tc.subject))
+						require.NoError(t, m.RevokeSubjectConsentSession(ctx, tc.subject, ""))
 					} else {
 						require.NoError(t, m.RevokeSubjectClientConsentSession(ctx, tc.subject, tc.client))
 					}
@@ -744,7 +744,7 @@ func ManagerTests(deps Deps, m consent.Manager, clientManager client.Manager, fo
 				})
 			}
 
-			require.NoError(t, m.RevokeSubjectConsentSession(ctx, "i-do-not-exist"))
+			require.NoError(t, m.RevokeSubjectConsentSession(ctx, "i-do-not-exist", ""))
 			require.NoError(t, m.RevokeSubjectClientConsentSession(ctx, "i-do-not-exist", "i-do-not-exist"))
 		})
 
